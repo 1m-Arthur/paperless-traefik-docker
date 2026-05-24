@@ -1,5 +1,2 @@
 .env
-consume/*
-data/*
-export/*
-media/*
+storage/*
