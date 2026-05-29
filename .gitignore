@@ -1,2 +1,8 @@
 .env
-storage/*
+paperless-ngx/consume/*
+paperless-ngx/data/*
+paperless-ngx/export/*
+paperless-ngx/media/*
+paperless-ngx/redisdata/*
+paperless-ngx/storage/*
+paperless-ngx/.env

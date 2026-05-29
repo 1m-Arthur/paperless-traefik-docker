@@ -1,0 +1,22 @@
+services:
+  webserver:
+    environment:
+      PAPERLESS_URL: https://${DOMAIN}
+    labels:
+      - "traefik.enable=true"
+      
+      # HTTPS Router
+      - "traefik.http.routers.paperless.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.paperless.entrypoints=websecure"
+      - "traefik.http.routers.paperless.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.paperless.service=paperless"
+      
+      # HTTP → HTTPS Redirect
+      - "traefik.http.routers.paperless-http.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.paperless-http.entrypoints=web"
+      - "traefik.http.routers.paperless-http.middlewares=https-redirect"
+      - "traefik.http.routers.paperless-http.service=paperless"
+      
+      # Service
+      - "traefik.http.services.paperless.loadbalancer.server.port=8000"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"

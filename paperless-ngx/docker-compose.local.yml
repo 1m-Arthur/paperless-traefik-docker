@@ -1,0 +1,10 @@
+services:
+  webserver:
+    environment:
+      PAPERLESS_URL: http://${LOCAL_IP:-localhost}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.paperless.rule=Host(`${LOCAL_IP:-localhost}`)"
+      - "traefik.http.routers.paperless.entrypoints=web"
+      - "traefik.http.routers.paperless.service=paperless"
+      - "traefik.http.services.paperless.loadbalancer.server.port=8000"

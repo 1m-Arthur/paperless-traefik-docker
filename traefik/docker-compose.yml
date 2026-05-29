@@ -1,0 +1,21 @@
+services:
+  traefik:
+    image: traefik:v3.7
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/traefik.yml:ro
+      - ./data:/data
+    networks:
+      - paperless_network
+    env_file:
+      - ../paperless-ngx/.env
+
+networks:
+  paperless_network:
+    name: paperless_network
+    external: true
