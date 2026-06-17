@@ -2,7 +2,7 @@ services:
   webserver:
     labels:
       - "traefik.enable=true"
+      # - "traefik.http.routers.paperless.rule=Host(`localhost`) || Host(`127.0.0.1`)"
       - "traefik.http.routers.paperless.rule=Host(`${APP_HOST}`)"
-      - "traefik.http.routers.paperless.entrypoints=websecure"
-      - "traefik.http.routers.paperless.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.paperless.entrypoints=web"
       - "traefik.http.services.paperless.loadbalancer.server.port=8000"

@@ -1,75 +1,62 @@
 services:
+
   broker:
     image: docker.io/library/redis:7
+    container_name: paperless-redis
     restart: unless-stopped
     volumes:
-      - ${PWD}/redisdata:/data
+      - redisdata:/data
     networks:
-      - paperless_network
+      - internal
 
   db:
     image: docker.io/library/postgres:16
+    container_name: paperless-db
     restart: unless-stopped
     volumes:
-      - ${PWD}/data/postgres:/var/lib/postgresql/data
-      # - ${PWD}/config/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - pgdata:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: ${PAPERLESS_DBNAME}
-      POSTGRES_USER: ${PAPERLESS_DBUSER}
-      POSTGRES_PASSWORD: ${PAPERLESS_DBPASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
-      - paperless_network
+      - internal
 
   webserver:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: paperless-web
     restart: unless-stopped
     depends_on:
       - db
       - broker
-      - gotenberg
-      - tika
     volumes:
-      - ${PWD}/data:/usr/src/paperless/data
-      - ${PWD}/media:/usr/src/paperless/media
-      - ${PWD}/export:/usr/src/paperless/export
-      - ${PWD}/consume:/usr/src/paperless/consume
+      - ./data:/usr/src/paperless/data
+      - ./media:/usr/src/paperless/media
+      - ./export:/usr/src/paperless/export
+      - ./consume:/usr/src/paperless/consume
     environment:
-      PAPERLESS_REDIS: ${PAPERLESS_REDIS}
-      PAPERLESS_DBHOST: ${PAPERLESS_DBHOST}
-      PAPERLESS_DBNAME: ${PAPERLESS_DBNAME}
-      PAPERLESS_DBUSER: ${PAPERLESS_DBUSER}
-      PAPERLESS_DBPASSWORD: ${PAPERLESS_DBPASSWORD}
-      PAPERLESS_TIKA_ENABLED: ${PAPERLESS_TIKA_ENABLED}
-      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: ${PAPERLESS_TIKA_GOTENBERG_ENDPOINT}
-      PAPERLESS_TIKA_ENDPOINT: ${PAPERLESS_TIKA_ENDPOINT}
-      PAPERLESS_URL: ${PAPERLESS_URL}
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBNAME: ${POSTGRES_DB}
+      PAPERLESS_DBUSER: ${POSTGRES_USER}
+      PAPERLESS_DBPASS: ${POSTGRES_PASSWORD}
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
       PAPERLESS_TIME_ZONE: ${PAPERLESS_TIME_ZONE}
       PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE}
       PAPERLESS_OCR_LANGUAGES: ${PAPERLESS_OCR_LANGUAGES}
-      PAPERLESS_ADMIN_USER: ${PAPERLESS_ADMIN_USER}
-      PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD}
-    env_file:
-      - .env
+      PAPERLESS_URL: ${APP_URL}
+      USERMAP_UID: 1000
+      USERMAP_GID: 1000
     networks:
-      - paperless_network
+      - traefik_proxy    # untuk Traefik
+      - internal         # untuk db & redis
 
-  gotenberg:
-    image: docker.io/gotenberg/gotenberg:8
-    restart: unless-stopped
-    command:
-      - "gotenberg"
-      - "--chromium-disable-javascript=true"
-      - "--chromium-allow-list=file:///tmp/.*"
-    networks:
-      - paperless_network
-
-  tika:
-    image: docker.io/apache/tika:latest
-    restart: unless-stopped
-    networks:
-      - paperless_network
+volumes:
+  pgdata:
+  redisdata:
 
 networks:
-  paperless_network:
-    external: true
+  traefik_proxy:
+    external: true       # sudah dibuat oleh traefik/docker-compose.yml
+  internal:
+    external: false

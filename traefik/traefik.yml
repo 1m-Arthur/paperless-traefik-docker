@@ -1,21 +1,17 @@
-api:
-  dashboard: true
-  insecure: true
-
-providers:
-  docker:
-    exposedByDefault: false
-    network: paperless_network
-
+# traefik.yml
 entryPoints:
   web:
     address: ":80"
   websecure:
     address: ":443"
 
+providers:
+  docker:
+    exposedByDefault: false
+
 certificatesResolvers:
   letsencrypt:
     acme:
-      email: ${TRAEFIK_ACME_EMAIL}
-      storage: /data/acme.json
+      email: email@domain.com
+      storage: /etc/traefik/acme.json
       tlsChallenge: {}
